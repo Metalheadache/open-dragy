@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright 2026 Yizhan Wu
+/build*/
+**/build/
+.cache/
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.ubx
+*.csv
+*.jsonl
+examples/esp32/managed_components/
+examples/esp32/build/
+examples/esp32/sdkconfig
+examples/esp32/sdkconfig.old
+captures/
+logs/
+*.lpr
+*.lpr.gz
+*.bin
+*.elf
+*.map

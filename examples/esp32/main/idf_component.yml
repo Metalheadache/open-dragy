@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright 2026 Yizhan Wu
+dependencies:
+  idf: "==5.4.2"
+  h2zero/esp-nimble-cpp: "==2.3.4"

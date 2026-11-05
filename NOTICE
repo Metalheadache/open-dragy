@@ -1,0 +1,45 @@
+Open Dragy — Dragy–ESP32 Engineering Reference
+Copyright 2026 Yizhan Wu
+
+The original contributions are licensed under MPL-2.0. Full text: LICENSE
+and LICENSES/MPL-2.0.txt. File-level licensing: licensing-map.json.
+
+OBSERVED BLE PROTOCOL / APACHE PROVENANCE
+DragyDash ESP32 by Jarel Remick:
+https://github.com/jremick/dragy-dash-esp32
+Pinned revision: 8d2aed470157f03cc4e14b4061e540f9b9b164c8
+Upstream license: Apache-2.0; full text: LICENSES/Apache-2.0.txt.
+Relevant upstream files: src/main.cpp and docs/DRAGY_PROTOCOL.md.
+
+Reference files carrying this mixed provenance:
+  include/dragy_ref/ble_session.hpp
+  examples/esp32/main/main.cpp
+
+Their SPDX expression is MPL-2.0 AND Apache-2.0. MPL governs local
+implementation/modifications; Apache terms and attribution are retained for
+upstream protectable expression. This is not an OR choice allowing all local
+modifications to be taken under Apache alone. Original upstream material
+remains available under its own Apache license.
+
+2026-11-05 modifications: isolate GPS retrieval; add CCCD verification,
+bounded notification handoff, session/loss isolation, recovery and optional
+receiver-rate verification. No upstream UI, board code, graphics or complete
+application is bundled. The pinned upstream tree has no separate NOTICE.
+
+UBX TECHNICAL REFERENCE
+u-blox M10 SPG 5.20 Interface Description, UBXDOC-304424225-20128, R01,
+28 July 2025, sections UBX-NAV-PVT, UBX-CFG-VALSET and CFG-RATE:
+https://content.u-blox.com/sites/default/files/documents/u-blox-M10-SPG-5.20_InterfaceDescription_UBXDOC-304424225-20128.pdf
+The vendor document is linked, not redistributed or relicensed.
+
+EXTERNAL BUILD DEPENDENCIES
+ESP-IDF 5.4.2: Apache-2.0 plus component-specific terms.
+https://github.com/espressif/esp-idf/tree/v5.4.2
+esp-nimble-cpp 2.3.4: Apache-2.0; copyright 2020–2025 Ryan Powell and
+esp-nimble-cpp / NimBLE-Arduino contributors.
+https://github.com/h2zero/esp-nimble-cpp/tree/2.3.4
+Dependency source is fetched by the build and is not bundled. Preserve the
+licenses/notices for components included in any redistributed binaries.
+
+Vendor names identify compatibility and technical references. No vendor
+endorsement or ownership of proprietary vendor software is implied.

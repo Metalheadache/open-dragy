@@ -1,0 +1,296 @@
+{
+  "format": 1,
+  "project": "Open Dragy",
+  "package_license": "MPL-2.0",
+  "copyright_notice": "Copyright 2026 Yizhan Wu",
+  "metadata_notice": "This map attaches the stated terms to listed metadata and NOTICE to the extent protectable rights exist. Dependency licenses are unchanged.",
+  "license_texts": {
+    "LICENSE": {
+      "text_of": "MPL-2.0",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "source_url": "https://www.mozilla.org/media/MPL/2.0/index.txt"
+    },
+    "LICENSES/MPL-2.0.txt": {
+      "text_of": "MPL-2.0",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "source_url": "https://www.mozilla.org/media/MPL/2.0/index.txt"
+    },
+    "LICENSES/Apache-2.0.txt": {
+      "text_of": "Apache-2.0",
+      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac",
+      "source_url": "https://apache.org/licenses/LICENSE-2.0.txt"
+    }
+  },
+  "files": {
+    ".gitignore": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "CMakeLists.txt": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "LICENSE": {
+      "role": "license-text",
+      "license_expression": null,
+      "text_of": "MPL-2.0",
+      "copyright_notice": null
+    },
+    "LICENSES/Apache-2.0.txt": {
+      "role": "license-text",
+      "license_expression": null,
+      "text_of": "Apache-2.0",
+      "copyright_notice": null
+    },
+    "LICENSES/MPL-2.0.txt": {
+      "role": "license-text",
+      "license_expression": null,
+      "text_of": "MPL-2.0",
+      "copyright_notice": null
+    },
+    "NOTICE": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "README.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "README.zh-CN.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/01-retrieval.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/02-coordinates.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/03-timing.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/04-rate.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/05-optimization.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/06-consistency.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/LICENSING.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "docs/TESTING.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/CMakeLists.txt": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/components/reference/CMakeLists.txt": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/dependencies.lock": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/main/CMakeLists.txt": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/main/Kconfig.projbuild": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/main/idf_component.yml": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "examples/esp32/main/main.cpp": {
+      "role": "mixed-source",
+      "license_expression": "MPL-2.0 AND Apache-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu",
+      "upstream": "Jarel Remick / DragyDash ESP32; revision 8d2aed470157f03cc4e14b4061e540f9b9b164c8; Apache-2.0"
+    },
+    "examples/esp32/sdkconfig.defaults": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/ble_session.hpp": {
+      "role": "mixed-source",
+      "license_expression": "MPL-2.0 AND Apache-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu",
+      "upstream": "Jarel Remick / DragyDash ESP32; revision 8d2aed470157f03cc4e14b4061e540f9b9b164c8; Apache-2.0"
+    },
+    "include/dragy_ref/drag.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/geometry.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/ingress.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/rate.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/speed_filter.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/telemetry.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "licensing-map.json": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "reference-manifest.json": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "src/drag.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "src/geometry.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "src/speed_filter.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "src/telemetry.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/ble_session_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/consistency_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/curved_profiles_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/decoder_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/drag_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/geometry_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/launch_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/rate_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/speed_filter_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/audit_package.py": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/benchmark.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/check_replay.py": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/generate.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/replay.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/synthetic.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tools/update_manifest.py": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    }
+  }
+}

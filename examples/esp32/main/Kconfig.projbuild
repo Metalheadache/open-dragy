@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright 2026 Yizhan Wu
+menu "Dragy engineering reference"
+config REFERENCE_PEER_ADDRESS
+    string "Selected Dragy BLE address (empty = scan and list only)"
+    default ""
+config REFERENCE_PEER_RANDOM
+    bool "Selected address is a random BLE address"
+    default n
+config REFERENCE_REQUEST_25HZ
+    bool "Request temporary 25 Hz on positively identified DRG71"
+    default n
+config REFERENCE_ARM_TESTS
+    bool "Explicitly arm experimental drag detectors after boot"
+    default n
+endmenu
