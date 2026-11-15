@@ -30,10 +30,17 @@ public:
             if(clean_>=required_intervals){qualified_=true;ordinary_=required_intervals;engine_.accept(s,arrival);}
         }else if(e==Epoch::Forward&&dt==40){
             if(held_){
-                // The confirming endpoint must meet the same Drag quality gates.
-                if(quality(s)){engine_.accept_impl(held_sample_,held_arrival_,true);++bridged;}
-                else {engine_.interrupt(Fault::Accuracy);++rejected;}
-                held_=false;
+                // The engine may complete a held finish before discovering a
+                // confirming speed jump/latency fault. Keep its public results
+                // transactional until both original samples pass all checks.
+                const View before=engine_.view_;const auto faults=engine_.discontinuities_;
+                engine_.accept_impl(held_sample_,held_arrival_,true);engine_.accept(s,arrival);
+                if(engine_.discontinuities_==faults){++bridged;ordinary_=1;}
+                else {
+                    const auto reason=engine_.last_rejection_;engine_.view_=before;
+                    engine_.interrupt(reason);++rejected;qualified_=false;ordinary_=clean_=0;
+                }
+                held_=false;previous_=s;return;
             }
             ordinary_=std::min(ordinary_+1,required_intervals);engine_.accept(s,arrival);
         }else if(!held_&&ordinary_>=required_intervals&&e==Epoch::Forward&&dt>40&&

@@ -11,6 +11,7 @@
 #include "dragy_ref/ingress.hpp"
 #include "dragy_ref/receiver.hpp"
 #include "dragy_ref/rate_setup.hpp"
+#include "dragy_ref/operation.hpp"
 #include "esp_timer.h"
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
@@ -27,9 +28,9 @@ using Queue=dragy_ref::Ingress<>;
 using Receiver=dragy_ref::ble::Receiver;
 Queue queue;
 dragy_ref::BoundaryControl gate_control,reply_control;
-std::atomic<uint32_t> notification_ms{0},sample_ms{0},operation_token{0},operation_done{0};
-std::atomic<bool> operation_ok{false},accepting{false},consumer_ready{false};
-std::atomic<Receiver> receiver_identity{Receiver::Unknown};
+std::atomic<uint32_t> notification_ms{0},sample_ms{0},operation_token{0};
+std::atomic<bool> accepting{false},consumer_ready{false};
+dragy_ref::ble::OperationResult operation_result;
 NimBLEClient* client{};
 uint64_t now_us(){return uint64_t(esp_timer_get_time());}
 void pause(unsigned ms){vTaskDelay(pdMS_TO_TICKS(ms));}
@@ -145,50 +146,55 @@ struct Adapter {
     }
     bool read_cccd(uint16_t& out){auto v=cccd->readValue();if(v.size()!=2)return false;out=uint16_t(v[0])|(uint16_t(v[1])<<8);return client->isConnected();}
 };
-struct Identity {uint8_t bytes[48]{};int size{},total{};};
-Identity identity;
+// Scratch and completed-token state are used only by the serialized host task.
+uint32_t completed_token{},identity_token{};
+dragy_ref::ble::OperationResult::View identity;
 int identity_callback(uint16_t,const ble_gatt_error* error,ble_gatt_attr* attr,void* arg){
-    auto token=uint32_t(reinterpret_cast<uintptr_t>(arg));if(token!=operation_token.load()||operation_done.load()==token)return 0;
+    auto token=uint32_t(reinterpret_cast<uintptr_t>(arg));if(token!=operation_token.load()||completed_token==token)return 0;
+    if(identity_token!=token){identity={};identity.token=token;identity_token=token;}
     const int n=attr&&attr->om?OS_MBUF_PKTLEN(attr->om):0;const int shown=std::min(n,48);
-    if(error&&error->status==0&&n>0&&os_mbuf_copydata(attr->om,0,shown,identity.bytes)==0){
-        identity.size=shown;identity.total=n;
-        auto found=dragy_ref::ble::receiver_model(std::string_view(reinterpret_cast<const char*>(identity.bytes),size_t(shown)));
-        if(found==Receiver::Legacy||(receiver_identity.load()!=Receiver::Legacy&&found!=Receiver::Unknown))receiver_identity=found;
+    if(error&&error->status==0&&n>0&&os_mbuf_copydata(attr->om,0,shown,identity.bytes.data())==0){
+        identity.size=uint32_t(shown);identity.total=uint32_t(n);
+        auto found=dragy_ref::ble::receiver_model(std::string_view(reinterpret_cast<const char*>(identity.bytes.data()),size_t(shown)));
+        if(found==Receiver::Legacy||(identity.receiver!=Receiver::Legacy&&found!=Receiver::Unknown))identity.receiver=found;
         return 0;
     }
-    operation_ok=error&&error->status==BLE_HS_EDONE;operation_done=token;return 0;
+    identity.ok=error&&error->status==BLE_HS_EDONE;completed_token=token;operation_result.publish(identity);return 0;
 }
 int write_callback(uint16_t,const ble_gatt_error* error,ble_gatt_attr*,void* arg){
-    auto token=uint32_t(reinterpret_cast<uintptr_t>(arg));if(token!=operation_token.load())return 0;
-    operation_ok=error&&error->status==0;operation_done=token;return 0;
+    auto token=uint32_t(reinterpret_cast<uintptr_t>(arg));if(token!=operation_token.load()||completed_token==token)return 0;
+    dragy_ref::ble::OperationResult::View result;result.token=token;result.ok=error&&error->status==0;
+    completed_token=token;operation_result.publish(result);return 0;
 }
 struct RateIO {
     NimBLERemoteCharacteristic* tx{};bool identity_read{},model_read{},identity_logged{};
-    uint32_t next_token(){identity_logged=false;operation_ok=false;return ++operation_token;}
+    dragy_ref::ble::OperationResult::View completed;
+    uint32_t next_token(){identity_logged=false;return ++operation_token;}
     void invalidate(){++operation_token;}
     void gate(bool pending){gate_control.publish(queue.boundary(),pending);}
     void watch(uint32_t token){reply_control.publish(queue.boundary(),token);}
     bool read(uint32_t token,uint16_t uuid){
-        identity={};identity_read=true;ble_uuid16_t u=BLE_UUID16_INIT(uuid);
+        if(token!=operation_token.load()||!client->isConnected())return false;
+        identity_read=true;ble_uuid16_t u=BLE_UUID16_INIT(uuid);
         return ble_gattc_read_by_uuid(client->getConnHandle(),1,0xffff,&u.u,identity_callback,reinterpret_cast<void*>(uintptr_t(token)))==0;
     }
-    bool model(uint32_t token){model_read=true;receiver_identity=Receiver::Unknown;return read(token,0x2a24);}
+    bool model(uint32_t token){model_read=true;return read(token,0x2a24);}
     bool firmware(uint32_t token){model_read=false;return read(token,0x2a26);}
     bool write(uint32_t token,const std::array<uint8_t,18>& bytes){
-        identity_read=false;return tx&&ble_gattc_write_flat(client->getConnHandle(),tx->getHandle(),bytes.data(),bytes.size(),write_callback,reinterpret_cast<void*>(uintptr_t(token)))==0;
+        identity_read=false;return token==operation_token.load()&&client->isConnected()&&tx&&ble_gattc_write_flat(client->getConnHandle(),tx->getHandle(),bytes.data(),bytes.size(),write_callback,reinterpret_cast<void*>(uintptr_t(token)))==0;
     }
     dragy_ref::ble::Completion completion(uint32_t token){
-        if(operation_done.load()!=token)return dragy_ref::ble::Completion::Pending;
+        if(token!=operation_token.load()||!operation_result.read(token,completed))return dragy_ref::ble::Completion::Pending;
         if(identity_read&&!identity_logged){
             identity_logged=true;char text[49]{};
-            for(int i=0;i<identity.size;++i)text[i]=identity.bytes[i]>=32&&identity.bytes[i]<127?char(identity.bytes[i]):'?';
-            printf("IDENTITY %s length=%d truncated=%d text=%s hex=",model_read?"model_2A24":"firmware_2A26",identity.total,identity.total>identity.size,text);
-            for(int i=0;i<identity.size;++i)printf("%02x",identity.bytes[i]);
+            for(uint32_t i=0;i<completed.size;++i)text[i]=completed.bytes[i]>=32&&completed.bytes[i]<127?char(completed.bytes[i]):'?';
+            printf("IDENTITY %s length=%lu truncated=%d text=%s hex=",model_read?"model_2A24":"firmware_2A26",(unsigned long)completed.total,completed.total>completed.size,text);
+            for(uint32_t i=0;i<completed.size;++i)printf("%02x",completed.bytes[i]);
             puts("");
         }
-        return operation_ok?dragy_ref::ble::Completion::Success:dragy_ref::ble::Completion::Failure;
+        return completed.ok?dragy_ref::ble::Completion::Success:dragy_ref::ble::Completion::Failure;
     }
-    Receiver model_receiver(){return receiver_identity.load();}
+    Receiver model_receiver(){return completed.receiver;}
     bool writable()const{return tx&&tx->canWrite();}
     bool status(SharedStatus::View& v)const{return shared.read(v)&&v.gate==gate_control.revision();}
     bool clean25(uint64_t now)const{SharedStatus::View v;return status(v)&&v.clean>=8&&v.delta==40&&v.ms&&uint32_t(now/1000)-v.ms<=250;}
@@ -235,12 +241,13 @@ void ble_task(void*){
         if(!client->connect(peer)){scan->clearResults();pause(1000*dragy_ref::ble::backoff(failures++));continue;}
         scan->clearResults();Adapter io;io.session=session;
         if(!dragy_ref::ble::setup(io)){accepting=false;client->disconnect();while(client->isConnected())pause(20);pause(1000*dragy_ref::ble::backoff(failures++));continue;}
-        failures=0;auto connected=now_us();bool seen=false,repaired=false;rate_io.tx=io.rate;rate.start(connected,hint,request,provisional);
+        failures=0;auto connected=now_us();bool seen=false,repaired=false;rate_io.tx=io.rate;rate.start(connected,hint,request,provisional,true);
         while(client->isConnected()){
             auto now=now_us();rate.poll(now);auto sample=sample_ms.load();seen|=sample!=0;
             auto recent=[&](uint32_t ms)->uint64_t{return ms?now-uint64_t(uint32_t(uint32_t(now/1000)-ms))*1000:0;};
             if(dragy_ref::ble::reconnect_due(now,connected,recent(notification_ms.load()),recent(sample),seen)){puts("Stream recovery: reconnect");client->disconnect();break;}
             if(dragy_ref::ble::repair_due(now,connected,seen,repaired)){
+                if(rate.att_owned()){puts("Stream recovery: disconnect to retire optional ATT operation");client->disconnect();break;}
                 repaired=true;accepting=false;rate.cancel();io.session=queue.new_session();
                 if(!dragy_ref::ble::setup(io)){client->disconnect();break;}
                 rate_io.tx=io.rate;rate.start(now_us(),hint,request,provisional,false);

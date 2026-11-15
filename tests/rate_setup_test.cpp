@@ -53,11 +53,23 @@ int main(){
     {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);s.poll(3000000);assert(io.writes==0&&io.firmwares==0&&!io.pending);
      io.complete();s.poll(4000000);assert(io.writes==0&&io.firmwares==0);
      s.start(4500000,Receiver::Unknown,true,false,false);assert(io.models==1&&!io.pending); // late completion cannot overlap
-     s.start(5000000,Receiver::Unknown,true);io.complete();s.poll(5000001);s.poll(5750001);assert(io.writes==1);}
+     s.start(5000000,Receiver::Unknown,true,false,true);io.complete();s.poll(5000001);s.poll(5750001);assert(io.writes==1);}
     {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(1);s.poll(750001);s.poll(3750001);assert(io.firmwares==0&&!s.watching()&&!io.pending);}
     {IO io;io.start_ok=false;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);assert(!io.pending&&io.writes==0&&io.firmwares==1);}
     {IO io;io.can_write=false;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(1);assert(io.writes==0&&io.firmwares==1);}
     {IO io;io.request_start_ok=false;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(1);s.poll(750001);assert(!io.pending&&io.firmwares==1&&io.watch_token==0);}
     {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(1);s.poll(750001);io.complete();s.poll(750002);s.poll(3750002);assert(io.firmwares==1&&s.watching());s.poll(10750001);assert(!s.watching());}
+    {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);
+     io.complete();s.poll(3000000);assert(s.stage()==RateSetup<IO>::Stage::Idle);
+     assert(io.writes==0&&io.firmwares==0&&!io.pending);}
+    {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);assert(s.att_owned());
+     s.cancel();s.start(10,Receiver::Unknown,true,false,false);assert(io.models==1&&s.att_owned());
+     s.start(20,Receiver::Unknown,true,false,true);assert(io.models==2);}
+    {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(2999999);
+     assert(s.stage()==RateSetup<IO>::Stage::Observe);}
+    {IO io;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(1);s.poll(750001);
+     io.complete();s.poll(3750001);assert(io.firmwares==0&&!s.watching()&&s.att_owned());}
+    {IO io;io.can_write=false;RateSetup<IO> s(io);s.start(0,Receiver::Unknown,true);io.complete();s.poll(1);
+     io.complete();s.poll(3000001);assert(s.att_owned()&&s.stage()==RateSetup<IO>::Stage::Idle);}
     puts("PASS rate controller: 60 profile/opt-in combinations, existing25 skip, 10Hz request, ACK/NAK independence, failures, timeouts, stale completions, reconnect and no overlapping ATT procedures");
 }

@@ -15,8 +15,8 @@ template<class IO> class RateSetup {
 public:
     enum class Stage {Idle,Model,Observe,Write,Firmware};
     explicit RateSetup(IO& io):io_(io){}
-    void cancel(){io_.invalidate();io_.watch(0);io_.gate(true);stage_=Stage::Idle;watching_=false;}
-    void start(uint64_t now,Receiver advertised,bool enabled,bool provisional=false,bool new_connection=true){
+    void cancel(){if(att_owned())blocked_=true;io_.invalidate();io_.watch(0);io_.gate(true);stage_=Stage::Idle;watching_=false;}
+    void start(uint64_t now,Receiver advertised,bool enabled,bool provisional=false,bool new_connection=false){
         cancel();if(new_connection)blocked_=false;
         if(blocked_){io_.gate(false);io_.log("optional ATT remains blocked until a new connection");return;}
         hint_=advertised;enabled_=enabled;provisional_=provisional;actual_=Receiver::Unknown;
@@ -30,25 +30,25 @@ public:
                 else write(now);
             }
         }else if(stage_!=Stage::Idle){
-            auto done=io_.completion(token_);
-            if(done!=Completion::Pending){
-                if(stage_==Stage::Model){
-                    actual_=io_.model_receiver();const auto profile=rate_receiver(actual_,hint_);
-                    if(done==Completion::Success&&enabled_&&request_25hz(profile)&&io_.writable()&&
-                       (profile==Receiver::Pro||provisional_)){
-                        io_.profile(profile,actual_==Receiver::Unknown);stage_=Stage::Observe;started_=now;
-                    }else {io_.gate(false);firmware(now);}
-                }else if(stage_==Stage::Write){
-                    watching_=done==Completion::Success;
-                    io_.log(watching_?"rate write ATT accepted; reply and cadence independent":"rate write failed; stream retained");
-                    io_.gate(false);if(!watching_)io_.watch(0);firmware(now);
-                }else stage_=Stage::Idle;
-            }else if(now>=started_&&now-started_>=3000000){
-                // The stack may still own the ATT procedure. Invalidate its
-                // callback and do not begin firmware/other reads this session.
+            if(now>=started_&&now-started_>=3000000){
                 const bool was_firmware=stage_==Stage::Firmware;
                 blocked_=true;io_.invalidate();stage_=Stage::Idle;io_.log("optional ATT timeout; no overlapping procedure");
                 if(!was_firmware){watching_=false;io_.watch(0);io_.gate(false);}
+            }else{
+                auto done=io_.completion(token_);
+                if(done!=Completion::Pending){
+                    if(stage_==Stage::Model){
+                        actual_=io_.model_receiver();const auto profile=rate_receiver(actual_,hint_);
+                        if(done==Completion::Success&&enabled_&&request_25hz(profile)&&io_.writable()&&
+                           (profile==Receiver::Pro||provisional_)){
+                            io_.profile(profile,actual_==Receiver::Unknown);stage_=Stage::Observe;started_=now;
+                        }else {io_.gate(false);firmware(now);}
+                    }else if(stage_==Stage::Write){
+                        watching_=done==Completion::Success;
+                        io_.log(watching_?"rate write ATT accepted; reply and cadence independent":"rate write failed; stream retained");
+                        io_.gate(false);if(!watching_)io_.watch(0);firmware(now);
+                    }else stage_=Stage::Idle;
+                }
             }
         }
         if(watching_){
@@ -59,6 +59,7 @@ public:
             else if(now>=requested_&&now-requested_>=10000000){watching_=false;io_.log("25 Hz unconfirmed; timing unavailable");io_.watch(0);}
         }
     }
+    bool att_owned()const{return blocked_||stage_==Stage::Model||stage_==Stage::Write||stage_==Stage::Firmware;}
     Stage stage()const{return stage_;}
     bool watching()const{return watching_;}
 private:

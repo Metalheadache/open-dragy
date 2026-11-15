@@ -72,6 +72,10 @@ Under **Dragy engineering reference**, leave the peer address empty to scan and 
 
 The portable `Engine` keeps its original strict multi-rate behavior; `--require-25hz` selects the new qualification/gap policy in replay. No fresh receiver, driving-accuracy or long-soak acceptance is claimed for this update. DRG70/Lite hardware compatibility remains **provisional**, including their rate-command transport. See [validation and scope](docs/UPDATE_0.2.0.md).
 
+## 0.2.1 final review
+
+Provisional finishes now wait for the confirming sample to pass every engine check, including speed dynamics and host delivery. Expired optional ATT completions cannot advance setup, repair reconnects when a procedure may still be owned, and identity results use a coherent token-bound mailbox. See [review findings and validation](docs/REVIEW_0.2.1.md). Receiver compatibility labels and the standalone scope are unchanged.
+
 ## Engineering notes
 
 1. [Retrieval and minimal ESP32 adapter](docs/01-retrieval.md)

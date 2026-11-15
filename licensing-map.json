@@ -100,6 +100,11 @@
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
+    "docs/REVIEW_0.2.1.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "docs/TESTING.md": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
@@ -173,6 +178,11 @@
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
     "include/dragy_ref/ingress.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/operation.hpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
@@ -283,6 +293,11 @@
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
     "tests/launch_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/operation_test.cpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"

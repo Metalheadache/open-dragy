@@ -35,6 +35,7 @@ static Point point(const Sample& a,const Sample& b,double fraction,double timest
 }
 void Engine::reset_continuity(){previous_good_=false;stationary_=false;still_since_=-1;cadence_=0;launch_={};for(auto& r:runs_)r.eligible=false;}
 void Engine::invalidate(Fault reason){
+ ++discontinuities_;last_rejection_=reason;
  for(auto& ch:view_.channels)if(ch.result.phase==Phase::Running){ch.result.phase=Phase::Invalid;ch.result.fault=reason;ch.result.sequence=++view_.revision;}
  reset_continuity();
 }

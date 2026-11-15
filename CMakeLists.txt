@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright 2026 Yizhan Wu
 cmake_minimum_required(VERSION 3.20)
-project(dragy_esp32_reference VERSION 0.2.0 LANGUAGES CXX)
+project(dragy_esp32_reference VERSION 0.2.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(REFERENCE_SANITIZERS "Address and undefined-behavior sanitizers" ON)
@@ -18,7 +18,7 @@ endif()
 enable_testing()
 find_package(Threads REQUIRED)
 find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
-foreach(name receiver protocol control_protocol startup_timing rate_setup decoder speed_filter rate ble_session launch curved_profiles drag consistency geometry)
+foreach(name operation receiver protocol control_protocol startup_timing rate_setup decoder speed_filter rate ble_session launch curved_profiles drag consistency geometry)
   add_executable(${name}_test tests/${name}_test.cpp)
   target_link_libraries(${name}_test PRIVATE dragy_reference Threads::Threads)
   add_test(NAME ${name} COMMAND ${name}_test)

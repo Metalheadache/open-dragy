@@ -16,6 +16,7 @@ The C++17 desktop build enables AddressSanitizer and UndefinedBehaviorSanitizer 
 
 | Suite | Coverage |
 | --- | --- |
+| Operation results | Exact-token identity publication, cancellation and concurrent payload consistency |
 | Complete UBX protocol | Every split, opaque nested PVT, 0/512/oversize payloads, corrupt/truncated auxiliary messages, quality equivalence and signed high-speed boundaries |
 | Receiver consumer | Actual example consumer: queued setup boundaries, pending observation, strict 10 Hz rejection, overflow/session recovery and stale/partial replies |
 | Control/replies | Matching ACK/NAK, first reply, every partial request boundary, queued/old/lost contexts, sequence wrap and concurrent atomic snapshots |
@@ -47,3 +48,7 @@ On 15 November 2026, all **15 suites passed** in both a Debug build with Address
 These checks validate software behavior and compilation. Fake GATT/model responses, synthetic timing profiles and the bounded parser tests do not establish real DRG70/Lite compatibility, RF quality, road accuracy or long-soak acceptance. See [update scope](UPDATE_0.2.0.md).
 
 To reproduce the concurrency checks with Clang, build `tests/control_protocol_test.cpp` and `tests/consistency_test.cpp` with `src/telemetry.cpp`, `-Iinclude -std=c++17 -pthread -fsanitize=thread -g`; run each resulting executable. Use a separate build from ASan/UBSan.
+
+### 0.2.1 final review
+
+The expanded 16-suite ASan/UBSan and Release runs, three ThreadSanitizer suites, default/enabled ESP32 builds, privacy/history audit and corrected boundary regressions are recorded in [the final review](REVIEW_0.2.1.md). The operation concurrency check uses `tests/operation_test.cpp` with the same compiler flags as the two threaded checks above.

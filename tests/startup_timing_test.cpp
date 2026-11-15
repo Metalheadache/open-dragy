@@ -32,7 +32,7 @@ int main(){
         assert(t.bridged==1&&t.view().channels[0].result.phase==drag::Phase::Complete);
         assert(std::abs(t.view().channels[0].result.elapsed_s-100/3.6/4)<.005);
     }
-    for(unsigned fault=0;fault<7;++fault){
+    for(unsigned fault=0;fault<8;++fault){
         TimingGate25 t;t.arm();t.configure(false);
         for(unsigned ms=0;ms<=8800;ms+=40)t.accept(sample(ms),arrival(ms));
         t.accept(sample(9000),arrival(9000));assert(t.awaiting_confirmation());
@@ -41,6 +41,7 @@ int main(){
         if(fault==3)s.hacc_mm=5001;if(fault==4)s.tow_ms+=40;
         if(fault==5){t.poll(arrival(9600));}
         if(fault==6){t.interrupt();}
+        if(fault==7)s.speed_mm_s+=5000; // valid quality, impossible confirming acceleration
         t.accept(s,arrival(fault==5?9600:9040));
         assert(t.view().channels[0].result.phase!=drag::Phase::Complete);
     }
@@ -64,6 +65,12 @@ int main(){
     {TimingGate25 t;t.configure(false);for(unsigned ms=0;ms<=400;ms+=40)t.accept(sample(ms),arrival(ms));
      assert(t.clean_intervals()>=8);t.accept(sample(400),arrival(440));assert(t.clean_intervals()==0);
      assert(!t.ready(arrival(680)));}
+    {TimingGate25 t;t.arm();t.configure(false);
+     auto delivered=[](unsigned ms){return arrival(ms)-std::min(1000u,ms>1000?ms-1000:0u)*480ull;};
+     for(unsigned ms=0;ms<=8800;ms+=40)t.accept(sample(ms),delivered(ms));
+     t.accept(sample(9000),delivered(9000));assert(t.awaiting_confirmation());
+     t.accept(sample(9040),delivered(9000)); // receiver progression now exceeds host by >500ms
+     assert(t.view().channels[0].result.phase!=drag::Phase::Complete);}
     auto a=sample(0),b=a;a.speed_mm_s=b.speed_mm_s=50000;
     assert(timing::short_gap(a,b,200));b.speed_mm_s=50001;assert(!timing::short_gap(a,b,200));
     b=a;assert(!timing::short_gap(a,b,201));b.lat_e7=901;assert(!timing::short_gap(a,b,80));

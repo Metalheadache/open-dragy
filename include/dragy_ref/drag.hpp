@@ -41,6 +41,7 @@ public:
     const View& view()const{return view_;}
 private:
     friend class TimingGate25;
+    uint32_t discontinuities_{};Fault last_rejection_{Fault::None};
     void accept_impl(const Sample&,uint64_t,bool confirmed_gap);
     struct Runtime {double start_ms{},stop_ms{-1},stop_distance{},last_decel{};bool eligible{};Point stop_point{};};
     // Accumulate the shared standing-start prefix privately, without a sample
