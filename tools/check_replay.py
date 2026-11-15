@@ -23,12 +23,17 @@ with tempfile.TemporaryDirectory(prefix='dragy-reference-replay-') as folder:
         assert result.returncode == code, (name, result.returncode, result.stdout, result.stderr)
         return result
     run('clean', lines, ['--arm', '--expect-complete'], 0)
+    run('clean-qualified25', lines, ['--arm', '--expect-complete', '--require-25hz'], 0)
     # Delete an entire established 40 ms epoch during the active launch.
     gap = [line for line in lines if not line.startswith('13000000,')]
     # 3000 ms includes zero jitter on this synthetic profile.
     assert len(gap) == len(lines)-3
     result = run('gap', gap, ['--arm', '--expect-complete'], 1)
     assert 'GPS sample gap' in result.stdout
+    run('gap-qualified25', gap, ['--arm', '--expect-complete', '--require-25hz'], 0)
+    dense = [line for line in gap if not line.startswith('13120000,')]
+    assert len(dense) == len(lines)-6
+    run('dense-gap-qualified25', dense, ['--arm', '--expect-complete', '--require-25hz'], 1)
     corrupt = lines.copy()
     row = 1 + (3000//40)*3 + 1
     stamp, data = corrupt[row].split(',')

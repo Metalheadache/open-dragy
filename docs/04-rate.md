@@ -1,14 +1,31 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 <!-- Copyright 2026 Yizhan Wu -->
-# 25 Hz request and verification
+# Receiver profiles, 25 Hz setup and verification
 
-The isolated request encodes UBX-CFG-VALSET with **CFG-RATE-MEAS = 40 ms**, applied to the **RAM layer only**, over observed `FD01` transport. It does not request persistent flash or battery-backed configuration. The implementation derives and checks the UBX checksum rather than relying on a label in the UI.
+The unchanged UBX-CFG-VALSET request writes **CFG-RATE-MEAS = 40 ms to RAM only** through `FD01`. It does not save flash/battery-backed settings or change constellation/navigation settings. Reference: [u-blox M10 interface description](https://content.u-blox.com/sites/default/files/documents/u-blox-M10-SPG-5.20_InterfaceDescription_UBXDOC-304424225-20128.pdf), CFG-VALSET, CFG-RATE and ACK messages.
 
-Reference: [u-blox M10 interface description](https://content.u-blox.com/sites/default/files/documents/u-blox-M10-SPG-5.20_InterfaceDescription_UBXDOC-304424225-20128.pdf), UBX-CFG-VALSET and CFG-RATE. The output cadence is checked from NAV-PVT receiver timestamps after the request.
+| Profile | Recognition and rate-write policy | Evidence |
+| --- | --- | --- |
+| DRG71 / Pro | Strict DRG71 model family; request opt-in | Prior physical transport baseline; this update has software/build validation only |
+| DRG70 / DRG70-C | DRG70, DRG70-C, DRG70C model or same-peer advertisement hint | **Provisional**, separate opt-in; actual protocol/rate response needs hardware acceptance |
+| Lite | Lite / Dragy Lite / Dragy-Lite / Dragy_Lite / DragyLite / DRG Lite / DRGLite family | **Provisional**, separate opt-in; no numeric Lite model ID is assumed |
+| DRG69 | Recognized legacy model overrides modern advertisement hints | No rate write |
+| Unknown | May be discovered by FD00; no supported model/hint | No rate write |
 
-The minimal example requests this only when enabled in configuration and the Device Information Model Number (`2A24`) positively identifies `DRG71` with an accepted delimiter. Similar prefixes such as `DRG710` or an unknown/failed model read do not qualify. The operation is retried after a new supported connection/setup, with stale callbacks invalidated by tokens. Optional setup failure leaves the stream usable at its actual cadence.
+Matching is case-insensitive and checks family delimiters; `DRG710`, `DRG70X` and `LiteX` do not qualify. A recognized actual model takes precedence over an advertisement. A successful completed lookup with an unknown/absent model may use a DRG70/Lite hint from the selected address **and address type** only. A failed/timed-out model operation does not authorize a request. A Pro advertisement alone does not authorize the Pro rate write. Reconnect/repair repeats identification; hints are never taken from another peer. Missing FD01 leaves the stream usable.
 
-ATT success means the transport accepted the write; it does not prove that the receiver applied it. `CadenceVerifier` requires 25 consecutive forward 40 ms intervals from receiver iTOW after the request. A different interval/reset invalidates confirmation; duplicate/reordered epochs do not add evidence. BLE callbacks per second and UI refresh rate are not substitutes. The example reports observed cadence and request success separately.
+`REFERENCE_REQUEST_25HZ` enables requests; `REFERENCE_PROVISIONAL_RECEIVERS` separately allows provisional DRG70/Lite requests. Both default off. Manufacturer rate capability alone does not establish this particular BLE command transport. Unknown protocols remain raw diagnostic bytes; no NMEA/Nordic-UART adapter or invented quality/UTC data is introduced.
 
+## Adaptive setup
 
-25 Hz gives 40 ms observation spacing. Timing uses the actual receiver intervals and retains gaps rather than filling them with invented GPS samples.
+`RateSetup` reads model 2A24 asynchronously. An eligible writable profile gets a 750 ms observation window. Eight consecutive clean forward 40 ms receiver-iTOW intervals, with a sample no older than 250 ms, establish an existing 25 Hz stream and skip the write. Otherwise the original RAM request is sent once. No 10 Hz request is sent.
+
+Bluetooth write completion, receiver reply and measured cadence are separate evidence. The optional firmware read (2A26) follows rate setup. Tokens invalidate late callbacks; no second optional ATT procedure starts after a timed-out procedure may still be owned by the Bluetooth stack. The timeout retains live decoding. Reconnect starts a new setup context.
+
+`ReplyObserver` accepts only checksum-valid ACK-ACK 05/01 or ACK-NAK 05/00 with exactly two payload bytes matching 06/8A. It excludes queued notifications, frames starting before the request (including split replies), previous sessions and observed loss boundaries. The first matching reply wins. ACK has no transaction ID: this is a bounded temporal association, not definitive command attribution. A NAK stops the confirmation watch; missing ACK does not prevent independent cadence confirmation. ATT/ACK alone cannot establish 25 Hz.
+
+## Timing admission
+
+The ESP example uses `TimingGate25`, separately from the legacy `CadenceVerifier` utility (which retains its original 25-interval API). Each setup boundary clears timing and requires **eight post-boundary 40 ms intervals** after setup is released. Queued pre-boundary notifications cannot qualify it. A 10 Hz stream remains diagnostic data and never qualifies timing. Freshness is 250 ms; stale timing expires after 500 ms. Receiver fix/satellite/accuracy and host-delivery checks remain necessary after cadence qualification.
+
+Raw parsing and diagnostic observation continue during setup. A single isolated timing gap has a separate confirmation policy described in [timing](03-timing.md). Neither callback frequency nor UI refresh is receiver cadence, and missing samples are never invented.

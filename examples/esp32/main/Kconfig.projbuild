@@ -8,8 +8,15 @@ config REFERENCE_PEER_RANDOM
     bool "Selected address is a random BLE address"
     default n
 config REFERENCE_REQUEST_25HZ
-    bool "Request temporary 25 Hz on positively identified DRG71"
+    bool "Request temporary 25 Hz on supported receiver profiles"
     default n
+config REFERENCE_PROVISIONAL_RECEIVERS
+    bool "Enable provisional DRG70 / DRG70-C / Lite rate requests"
+    depends on REFERENCE_REQUEST_25HZ
+    default n
+    help
+        Experimental common-interface assumption; these models are not hardware
+        validated by this reference. A recognized DRG69 model blocks the request.
 config REFERENCE_ARM_TESTS
     bool "Explicitly arm experimental drag detectors after boot"
     default n

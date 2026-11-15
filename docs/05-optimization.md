@@ -8,10 +8,10 @@ The methods here protect a 25 Hz stream from application stalls. They are not a 
 - `Ingress<32,512>` holds at most **31 fragments**, not 31 GPS samples. One slot distinguishes empty from full. Maximum notification payload is 512 bytes; oversize/full conditions are counted and break decoder continuity.
 - The ingress path has one serialized notification producer and one consumer. Its indexes are lock-free 32-bit atomics. Do not use it as an MPSC queue or call the producer concurrently from multiple threads. Platform wrappers need to preserve this contract.
 - The producer only copies a bounded fragment, timestamps it, and publishes a slot. It does not parse, log to serial, write storage or wait for application locks.
-- The consumer owns parser, timing and presentation-filter state. The ESP32 example puts serial output on this worker; a blocked serial sink can still cause queue overflow, which is reported and treated as data loss.
+- The consumer owns parser, timing, reply-observer and presentation-filter state. The ESP32 example throttles serial presentation on this worker; a blocked serial sink can still cause queue overflow, which is reported and treated as data loss.
 - Any future SD/logging adapter should use its own bounded queue and report its own losses. A capture failure and a timing-ingress failure are distinct. There is no storage driver or background logging implementation in this minimal package.
 
-On the tested host ABI, `sizeof(Parser)` is 544 bytes and `sizeof(Ingress<>)` is 17,176 bytes. Layout can differ by target ABI. Queue sizing must be checked in the actual compiled target. The ESP32 example uses no PSRAM-specific allocation and includes no product task/memory layout.
+Parser/queue sizes are reported by the benchmark. Protocol counters and notification-sequence metadata change object sizes; layout also differs by target ABI. Queue sizing must be checked in the actual compiled target. The ESP32 example uses no PSRAM-specific allocation and includes no product task/memory layout.
 
 ## Reproduce a benchmark
 
@@ -24,3 +24,5 @@ build-release/reference_benchmark
 The benchmark feeds 250,000 fixed synthetic frames through the actual parser and checks the decode count. It reports elapsed time, throughput and object sizes. Use a Release build without sanitizers when comparing host throughput across changes.
 
 The queue's conservative loss handling is intentional: retaining a plausible-looking time across unobserved bytes would defeat measurement consistency. Prefer visible loss over silent integration across a gap.
+
+Control writes use a single-writer `BoundaryControl` mailbox with atomic fields and a bounded coherent snapshot. Notification callbacks do not acquire it or wait for it. `ReceiverDecoder` shares the production example's consumer logic with host tests. Sequence/revision arithmetic assumes fewer than 2^31 transitions between observations; these are session-local process counters, not persistent identities.

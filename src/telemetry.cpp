@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // Modified 2026-11-05: extracted and reduced to the standalone reference scope.
+// Modified 2026-11-15: bounded protocol diagnostics and receiver setup update.
 #include "dragy_ref/telemetry.hpp"
 #include <algorithm>
 #include <cstring>
@@ -12,9 +13,15 @@ static uint16_t u16(const uint8_t* p) { return p[0] | (uint16_t(p[1])<<8); }
 static uint32_t u32(const uint8_t* p) { return u16(p) | (uint32_t(u16(p+2))<<16); }
 static int32_t i32(const uint8_t* p) { uint32_t u=u32(p); int32_t i; std::memcpy(&i,&u,4); return i; }
 bool Sample::position_valid() const {
-    return (flags&1) && (fix==3 || fix==4) && lat_e7>=-900000000 && lat_e7<=900000000 &&
-        lon_e7>=-1800000000 && lon_e7<=1800000000 && speed_mm_s>=0 && speed_mm_s<=150000 &&
-        hacc_mm>0 && hacc_mm<=50000;
+    return position_rejections()==0;
+}
+uint32_t Sample::position_rejections() const {
+    uint32_t reasons=0;
+    if(!(flags&1)||(fix!=3&&fix!=4))reasons|=RejectFix;
+    if(lat_e7< -900000000||lat_e7>900000000||lon_e7< -1800000000||lon_e7>1800000000)reasons|=RejectPosition;
+    if(speed_mm_s<0||speed_mm_s>150000)reasons|=RejectSpeed;
+    if(!hacc_mm||hacc_mm>50000)reasons|=RejectAccuracy;
+    return reasons;
 }
 bool Sample::utc_valid() const {
     return (valid&3)==3 && year>=2020 && year<=2099 && month>=1 && month<=12 && day>=1 && day<=31 &&
@@ -34,20 +41,27 @@ bool decode_nav_pvt(const uint8_t* f, size_t n, Sample& s) {
     return true;
 }
 void Parser::drop(size_t n) { used_-=n; std::memmove(buffer_.data(),buffer_.data()+n,used_); }
-void Parser::feed(const uint8_t* p, size_t n, Handler h, void* ctx) {
+void Parser::feed(const uint8_t* p, size_t n, Handler h, void* ctx, MessageHandler message) {
     for(size_t i=0;i<n;++i) {
         if(used_==buffer_.size()) { drop(1); ++discarded; }
-        buffer_[used_++]=p[i];
+        buffer_[used_++]=p[i];++received_;
         while(used_>=2) {
             if(buffer_[0]!=0xb5 || buffer_[1]!=0x62) { drop(1); ++discarded; continue; }
             if(used_<6) break;
             size_t len=u16(buffer_.data()+4)+8;
-            // This release accepts only the evidenced 100-byte NAV-PVT frame.
-            if(buffer_[2]!=1 || buffer_[3]!=7 || len!=100) { drop(1); ++discarded; continue; }
+            if(len>buffer_.size()) { drop(1); ++discarded;++length_errors;continue; }
             if(used_<len) break;
+            uint8_t a=0,b=0;
+            for(size_t j=2;j<len-2;++j){a+=buffer_[j];b+=a;}
+            if(a!=buffer_[len-2]||b!=buffer_[len-1]){++checksum_errors;drop(1);continue;}
+            ++ubx_frames;
+            if(message)message({buffer_[2],buffer_[3],buffer_.data()+6,len-8,received_-used_},ctx);
             Sample s;
-            if(decode_nav_pvt(buffer_.data(),len,s)) { ++frames; h(s,buffer_.data(),ctx); drop(len); }
-            else { ++checksum_errors; drop(1); }
+            if(decode_nav_pvt(buffer_.data(),len,s)) { ++frames; if(h)h(s,buffer_.data(),ctx); }
+            else ++other_frames;
+            // A checksum-valid unsupported payload is opaque. Do not mistake a
+            // nested B5 62 sequence inside it for a separate GPS solution.
+            drop(len);
         }
     }
 }

@@ -42,3 +42,11 @@ For braking, extrapolate a plausible recent deceleration to zero after speed cro
 `DisplaySpeedHold` provides only a presentation zero after two seconds of plausible standstill, with uncertainty-aware exit hysteresis and immediate release at about 5 km/h. Never pass its held speed into `Engine` or edit `Sample` to match a display.
 
 There is no accelerometer trigger, rollout deduction, slope compensation, straight-line enforcement or official result certification. Synthetic analytic profiles exercise the arithmetic and timing policy.
+
+## Optional qualified 25 Hz integration
+
+`TimingGate25` owns a portable engine and adds strict 25 Hz admission. Use it directly, or use `ReceiverDecoder` for queue/control/protocol integration. Call `configure(true)` while rate setup is pending, then `configure(false)` at its completed ingress boundary; arming remains explicit. The ESP32 example and replay's `--require-25hz` use this path. Ordinary `Engine` behavior and its 5/10/25 Hz analytic tests remain unchanged.
+
+Startup needs eight clean forward 40 ms intervals. Once qualified, a single interval over 40 ms may be held if it is at most 200 ms, endpoint displacement and mean-speed integrated distance are each at most 10 m, both endpoints satisfy Drag quality, and at least eight ordinary 40 ms intervals have elapsed since any preceding bridge. The next real interval must be exactly 40 ms with acceptable quality. Only then may the held endpoint and current sample reach the engine, retaining their original timestamps and arrivals. A provisional finish is not visible before confirmation.
+
+A second non-40 ms interval, excessive distance/time, link/loss/reset boundary or stale delivery interrupts timing; new clean qualification is required. Duplicate epochs never confirm the held endpoint or refresh timing; backwards epochs interrupt the strict gate. A corrupt unrelated UBX message resets clean startup evidence but does not alone invalidate an already qualified run. Quality/dynamics/latency checks still apply. Interpolation across missing data has less evidence than uninterrupted samples; these limits are software policy, not physical accuracy certification.

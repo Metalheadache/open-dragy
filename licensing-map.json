@@ -105,6 +105,11 @@
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
+    "docs/UPDATE_0.2.0.md": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "examples/esp32/CMakeLists.txt": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
@@ -152,6 +157,11 @@
       "copyright_notice": "Copyright 2026 Yizhan Wu",
       "upstream": "Jarel Remick / DragyDash ESP32; revision 8d2aed470157f03cc4e14b4061e540f9b9b164c8; Apache-2.0"
     },
+    "include/dragy_ref/control.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "include/dragy_ref/drag.hpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
@@ -167,7 +177,22 @@
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
+    "include/dragy_ref/protocol.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "include/dragy_ref/rate.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/rate_setup.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/receiver.hpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
@@ -178,6 +203,16 @@
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
     "include/dragy_ref/telemetry.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/timing.hpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "include/dragy_ref/timing_bounds.hpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
@@ -222,6 +257,11 @@
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
+    "tests/control_protocol_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "tests/curved_profiles_test.cpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
@@ -247,12 +287,32 @@
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
+    "tests/protocol_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/rate_setup_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "tests/rate_test.cpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"
     },
+    "tests/receiver_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
     "tests/speed_filter_test.cpp": {
+      "role": "reference-material",
+      "license_expression": "MPL-2.0",
+      "copyright_notice": "Copyright 2026 Yizhan Wu"
+    },
+    "tests/startup_timing_test.cpp": {
       "role": "reference-material",
       "license_expression": "MPL-2.0",
       "copyright_notice": "Copyright 2026 Yizhan Wu"

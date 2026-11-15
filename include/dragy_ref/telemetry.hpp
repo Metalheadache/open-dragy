@@ -4,18 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // Modified 2026-11-05: extracted and reduced to the standalone reference scope.
+// Modified 2026-11-15: bounded protocol diagnostics and receiver setup update.
 #pragma once
 #include <array>
 #include <cstddef>
 #include <cstdint>
 namespace dragy_ref {
 constexpr uint32_t gps_week_ms = 604800000;
+enum SampleRejection : uint32_t { RejectFix=1, RejectPosition=2, RejectSpeed=4, RejectAccuracy=8 };
 struct Sample {
     uint32_t tow_ms{}, time_accuracy_ns{}, hacc_mm{}, vacc_mm{}, sacc_mm_s{};
     int32_t nano{}, lon_e7{}, lat_e7{}, height_mm{}, msl_mm{}, speed_mm_s{}, heading_e5{};
     uint16_t year{};
     uint8_t month{}, day{}, hour{}, minute{}, second{}, valid{}, fix{}, flags{}, satellites{};
     bool position_valid() const;
+    uint32_t position_rejections() const;
     bool utc_valid() const;
 };
 bool decode_nav_pvt(const uint8_t* frame, size_t size, Sample& out);
@@ -24,12 +27,18 @@ uint32_t crc32(const uint8_t* bytes, size_t size);
 class Parser {
 public:
     using Handler = void (*)(const Sample&, const uint8_t*, void*);
-    void feed(const uint8_t*, size_t, Handler, void*);
-    void reset() { used_=0; }
+    struct Message { uint8_t cls,id;const uint8_t* payload;size_t size;uint64_t offset; };
+    // Message and payload are borrowed only for the synchronous callback.
+    using MessageHandler = void (*)(const Message&, void*);
+    void feed(const uint8_t*, size_t, Handler, void*, MessageHandler=nullptr);
+    void reset() { used_=0;received_=0; }
+    uint64_t received() const { return received_; }
     uint32_t frames{}, checksum_errors{}, discarded{};
+    uint32_t ubx_frames{},other_frames{},length_errors{};
 private:
     std::array<uint8_t, 520> buffer_{};
     size_t used_{};
+    uint64_t received_{};
     void drop(size_t);
 };
 enum class Epoch { First, Forward, Duplicate, Backward, Reset, Invalid };

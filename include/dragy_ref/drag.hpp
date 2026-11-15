@@ -33,12 +33,15 @@ struct View {bool armed{};uint32_t revision{};std::array<Channel,count> channels
 // extrapolation <=1 s. Confirm >=max(1.389 m/s, 3*sAcc) for 300 ms
 // within 3 s, retaining that original onset and raw distance. Braking zero
 // extrapolation confirmed still for 0.5 s. No display-filter input.
+class TimingGate25;
 class Engine {
 public:
     void arm();void disarm();void accept(const Sample&,uint64_t arrival_us);
     void poll(uint64_t now_us);void interrupt(Fault=Fault::Interrupted);
     const View& view()const{return view_;}
 private:
+    friend class TimingGate25;
+    void accept_impl(const Sample&,uint64_t,bool confirmed_gap);
     struct Runtime {double start_ms{},stop_ms{-1},stop_distance{},last_decel{};bool eligible{};Point stop_point{};};
     // Accumulate the shared standing-start prefix privately, without a sample
     // queue or publishing results/PBs before movement is confirmed.

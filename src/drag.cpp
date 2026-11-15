@@ -5,6 +5,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // Modified 2026-11-05: extracted and reduced to the standalone reference scope.
 #include "dragy_ref/drag.hpp"
+#include "dragy_ref/timing_bounds.hpp"
 #include <algorithm>
 #include <cmath>
 namespace dragy_ref::drag {
@@ -85,7 +86,8 @@ void Engine::update_launch(const Sample& s,uint64_t arrival,double now,double dt
  out.max_sacc_mm_s=std::max({out.max_sacc_mm_s,s.sacc_mm_s,previous_.sacc_mm_s});
  out.min_satellites=std::min({out.min_satellites,s.satellites,previous_.satellites});
 }
-void Engine::accept(const Sample& s,uint64_t arrival){
+void Engine::accept(const Sample& s,uint64_t arrival){accept_impl(s,arrival,false);}
+void Engine::accept_impl(const Sample& s,uint64_t arrival,bool confirmed_gap){
  if(!view_.armed)return;
  if(arrival_ && (arrival<arrival_||arrival-arrival_>500000))interrupt(Fault::Stale);
  auto epoch=time_.accept(s.tow_ms);
@@ -98,7 +100,7 @@ void Engine::accept(const Sample& s,uint64_t arrival){
  else if(s.hacc_mm>5000||s.sacc_mm_s==0||s.sacc_mm_s>500)quality=Fault::Accuracy;
  else if(s.satellites<6)quality=Fault::Satellites;
  if(quality!=Fault::None){invalidate(quality);return;}
- if(previous_good_ && (time_.delta_ms>200 || (cadence_>0 && time_.delta_ms>cadence_*1.5))){invalidate(Fault::Gap);}
+ if(previous_good_ && (time_.delta_ms>200 || (cadence_>0 && time_.delta_ms>cadence_*1.5 && !(confirmed_gap&&timing::short_gap(previous_,s,time_.delta_ms))))){invalidate(Fault::Gap);}
  if(previous_good_&&arrival>=host_anchor_us_&&now-gps_anchor_ms_>(arrival-host_anchor_us_)/1000.+500){invalidate(Fault::Latency);}
  if(!previous_good_){host_anchor_us_=arrival;gps_anchor_ms_=now;previous_=s;previous_ms_=now;previous_good_=true;if(v<=.3)still_since_=now;return;}
  if(epoch!=Epoch::Forward||dt<=0)return;
